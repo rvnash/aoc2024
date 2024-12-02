@@ -3,7 +3,7 @@ defmodule D01Test do
   doctest D01
 
   def read_lists do
-    {:ok, content} = File.read("/Users/nash/src/aoc2024/d01/test/lists.txt")
+    {:ok, content} = File.read("/Users/nash/src/aoc2024/d01/test/01.txt")
 
     {list1, list2} =
       content
@@ -35,6 +35,5 @@ defmodule D01Test do
       end)
 
     IO.inspect(similarity, label: "Similarity")
-    assert D01.hello() == :world
   end
 end
