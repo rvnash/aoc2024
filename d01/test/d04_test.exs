@@ -100,15 +100,17 @@ defmodule D04Test do
     |> List.flatten()
   end
 
-  defp part1(array) do
+  defp part1_timed(array) do
     eight_strings = get_eight_strings(array)
 
-    part1 =
-      Enum.reduce(eight_strings, 0, fn str, count ->
-        count + (Regex.scan(~r/XMAS/, str, capture: :all) |> Enum.count())
-      end)
+    Enum.reduce(eight_strings, 0, fn str, count ->
+      count + (Regex.scan(~r/XMAS/, str, capture: :all) |> Enum.count())
+    end)
+  end
 
-    IO.puts("Part 1: #{part1}")
+  defp part1(array) do
+    {time, part1} = :timer.tc(&part1_timed/1, [array])
+    IO.puts("Part 1: #{part1} in #{time / 1000}ms")
   end
 
   defp sum_at(array, kernel, x, y) do
@@ -179,7 +181,7 @@ defmodule D04Test do
     count
   end
 
-  defp part2(array) do
+  defp conv_it(array) do
     conv1 =
       convolve(
         array,
@@ -220,11 +222,16 @@ defmodule D04Test do
         ])
       )
 
-    total = count5(conv1) + count5(conv2) + count5(conv3) + count5(conv4)
+    count5(conv1) + count5(conv2) + count5(conv3) + count5(conv4)
+  end
+
+  defp part2(array) do
+    {time_a, total_a} = :timer.tc(&conv_it/1, [array])
+    {time_b, total_b} = :timer.tc(&brute_force_it/1, [array])
 
     # Wrote it two ways, convolution and just looking for the pattern
-    IO.puts("Part 2 Method A: #{total}")
-    IO.puts("Part 2 Method B: #{brute_force_it(array)}")
+    IO.puts("Part 2 Method A: #{total_a} in #{time_a / 1000}ms")
+    IO.puts("Part 2 Method B: #{total_b} in #{time_b / 1000}ms")
   end
 
   test "Day 4" do
