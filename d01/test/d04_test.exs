@@ -157,25 +157,48 @@ defmodule D04Test do
   end
 
   defp brute_force_it(array) do
-    w = Arrays.size(array[0])
-    h = Arrays.size(array)
+    w = Arrays.size(array[0]) - 1
+    h = Arrays.size(array) - 1
 
     {_, count} =
-      Enum.reduce(array, {0, 0}, fn row, {col, count} ->
-        {_, col, count} =
-          Enum.reduce(row, {0, col, count}, fn value, {row, col, count} ->
-            if col > 0 and col < h - 1 and row > 0 and row < w - 1 and value == "A" and
-                 ((array[col - 1][row - 1] == "M" and array[col + 1][row + 1] == "S") or
-                    (array[col - 1][row - 1] == "S" and array[col + 1][row + 1] == "M")) and
-                 ((array[col - 1][row + 1] == "M" and array[col + 1][row - 1] == "S") or
-                    (array[col - 1][row + 1] == "S" and array[col + 1][row - 1] == "M")) do
-              {row + 1, col, count + 1}
-            else
-              {row + 1, col, count}
-            end
-          end)
+      Enum.reduce(array, {0, 0}, fn row_array, {row, count} ->
+        if row > 0 and row < h do
+          top_array = array[row - 1]
+          bot_array = array[row + 1]
 
-        {col + 1, count}
+          {_, count} =
+            Enum.reduce(row_array, {0, count}, fn value, {col, count} ->
+              if col > 0 and col < w and value == "A" do
+                case [
+                  top_array[col - 1],
+                  bot_array[col + 1],
+                  bot_array[col - 1],
+                  top_array[col + 1]
+                ] do
+                  ["M", "S", "M", "S"] ->
+                    {col + 1, count + 1}
+
+                  ["M", "S", "S", "M"] ->
+                    {col + 1, count + 1}
+
+                  ["S", "M", "M", "S"] ->
+                    {col + 1, count + 1}
+
+                  ["S", "M", "S", "M"] ->
+                    {col + 1, count + 1}
+
+                  _ ->
+                    {col + 1, count}
+                end
+              else
+                {col + 1, count}
+              end
+            end)
+
+          {row + 1, count}
+        else
+          {row + 1, count}
+        end
       end)
 
     count
