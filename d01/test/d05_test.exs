@@ -155,7 +155,7 @@ defmodule D05Test do
 
   defp part2(rules, updates) do
     {time, result} = :timer.tc(&part2_time_me/2, [rules, updates])
-    IO.puts("Part 1 #{result} in #{time / 1000}ms")
+    IO.puts("Part 2 #{result} in #{time / 1000}ms")
   end
 
   test "Day 5" do
