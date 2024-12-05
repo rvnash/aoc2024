@@ -1,4 +1,4 @@
-defmodule D04Test do
+defmodule D05Test do
   require Integer
   use ExUnit.Case
 
