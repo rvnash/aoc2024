@@ -7,7 +7,6 @@ defmodule D06Test do
             obstructions: MapSet.new(),
             loc: {0, 0},
             facing: {0, -1},
-            step_count: 0,
             on_map?: true,
             visitted: MapSet.new(),
             previous_guard_states: MapSet.new(),
@@ -77,21 +76,39 @@ defmodule D06Test do
   defp turn_right({0, 1}), do: {-1, 0}
   defp turn_right({-1, 0}), do: {0, -1}
 
+  defp run_to_corner_or_off_map(obstructions, w, h, lx, ly, fx, fy) do
+    x = lx + fx
+    y = ly + fy
+
+    if not (x >= 0 and x < w and y >= 0 and y < h) do
+      {lx, ly}
+    else
+      if MapSet.member?(obstructions, {x, y}) do
+        {lx, ly}
+      else
+        run_to_corner_or_off_map(obstructions, w, h, x, y, fx, fy)
+      end
+    end
+  end
+
   def step(
         %{
           loc: loc = {lx, ly},
           facing: facing = {fx, fy},
           obstructions: obstructions,
           previous_guard_states: previous_guard_states,
-          visitted: visitted
-        } = state
+          visitted: visitted,
+          w: w,
+          h: h
+        } = state,
+        fast_straights
       ) do
     new_loc = {lx + fx, ly + fy}
 
     if MapSet.member?(obstructions, new_loc) do
       turn_right = turn_right(facing)
       guard_state = {loc, turn_right}
-
+      # Only check for loops on the turns, makes the straight aways faster.
       %{
         state
         | facing: turn_right,
@@ -99,26 +116,33 @@ defmodule D06Test do
           in_loop?: MapSet.member?(previous_guard_states, guard_state)
       }
     else
+      new_loc =
+        if fast_straights do
+          run_to_corner_or_off_map(obstructions, w, h, lx, ly, fx, fy)
+        else
+          new_loc
+        end
+
       {x, y} = new_loc
-      on_map? = x >= 0 and x < state.w and y >= 0 and y < state.h
-      guard_state = {new_loc, state.facing}
+      on_map? = x >= 0 and x < w and y >= 0 and y < h
 
       %{
         state
         | loc: new_loc,
           visitted: (on_map? && MapSet.put(state.visitted, new_loc)) || visitted,
-          on_map?: on_map?,
-          previous_guard_states: MapSet.put(previous_guard_states, guard_state),
-          in_loop?: MapSet.member?(previous_guard_states, guard_state)
+          on_map?: on_map?
       }
     end
   end
 
-  def run_until_off_map_or_in_loop(state) when state.on_map? and not state.in_loop? do
-    run_until_off_map_or_in_loop(step(state))
+  def run_until_off_map_or_in_loop(state, fast_straights \\ false)
+
+  def run_until_off_map_or_in_loop(state, fast_straights)
+      when state.on_map? and not state.in_loop? do
+    run_until_off_map_or_in_loop(step(state, fast_straights))
   end
 
-  def run_until_off_map_or_in_loop(state) do
+  def run_until_off_map_or_in_loop(state, _fast_straights) do
     state
   end
 
@@ -130,21 +154,19 @@ defmodule D06Test do
 
   defp get_possible_new_obstruction_positions(state) do
     # Return everywhere the guard visits, minus the starting location
-    start_loc = state.loc
-    state = run_until_off_map_or_in_loop(state)
-
-    MapSet.delete(state.visitted, start_loc)
+    run_until_off_map_or_in_loop(state).visitted
+    |> MapSet.delete(state.loc)
     |> MapSet.to_list()
   end
 
   defp new_pos_produces_loop?(state, new_pos) do
-    state =
-      run_until_off_map_or_in_loop(%{
+    run_until_off_map_or_in_loop(
+      %{
         state
         | obstructions: MapSet.put(state.obstructions, new_pos)
-      })
-
-    state.in_loop?
+      },
+      true
+    ).in_loop?
   end
 
   defp count_looping_obstructions(state, obstructions) do
@@ -158,12 +180,14 @@ defmodule D06Test do
   end
 
   defp part2_concurrent(state) do
-    obstructions = get_possible_new_obstruction_positions(state)
-    max_concurrency = System.schedulers_online() * 32
+    max_concurrency = System.schedulers_online() * 64
 
-    Enum.chunk_every(obstructions, max_concurrency)
+    get_possible_new_obstruction_positions(state)
+    |> Enum.chunk_every(max_concurrency)
     |> Enum.map(fn obstructions_chunk ->
-      Task.async(fn -> count_looping_obstructions(state, obstructions_chunk) end)
+      Task.async(fn ->
+        count_looping_obstructions(state, obstructions_chunk)
+      end)
     end)
     |> Enum.map(fn task -> Task.await(task, :infinity) end)
     |> Enum.sum()
