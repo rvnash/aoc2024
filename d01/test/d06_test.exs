@@ -19,10 +19,10 @@ defmodule D06Test do
         state
 
       "#" ->
-        %__MODULE__{state | obstructions: MapSet.put(state.obstructions, {col, row})}
+        %{state | obstructions: MapSet.put(state.obstructions, {col, row})}
 
       "^" ->
-        %__MODULE__{
+        %{
           state
           | loc: {col, row},
             facing: {0, -1},
@@ -60,7 +60,7 @@ defmodule D06Test do
        Enum.reduce(line, {0, state}, fn char, {col, state} ->
          state =
            if col >= state.w or row >= state.h do
-             %__MODULE__{state | w: col + 1, h: row + 1}
+             %{state | w: col + 1, h: row + 1}
            else
              state
            end
@@ -72,51 +72,50 @@ defmodule D06Test do
     |> elem(1)
   end
 
-  defp turn_right(dir) do
-    case dir do
-      {0, -1} -> {1, 0}
-      {1, 0} -> {0, 1}
-      {0, 1} -> {-1, 0}
-      {-1, 0} -> {0, -1}
-    end
-  end
+  defp turn_right({0, -1}), do: {1, 0}
+  defp turn_right({1, 0}), do: {0, 1}
+  defp turn_right({0, 1}), do: {-1, 0}
+  defp turn_right({-1, 0}), do: {0, -1}
 
-  def step(state) do
-    new_loc =
-      {elem(state.loc, 0) + elem(state.facing, 0), elem(state.loc, 1) + elem(state.facing, 1)}
+  def step(
+        %{
+          loc: loc = {lx, ly},
+          facing: facing = {fx, fy},
+          obstructions: obstructions,
+          previous_guard_states: previous_guard_states,
+          visitted: visitted
+        } = state
+      ) do
+    new_loc = {lx + fx, ly + fy}
 
-    if MapSet.member?(state.obstructions, new_loc) do
-      %__MODULE__{
+    if MapSet.member?(obstructions, new_loc) do
+      turn_right = turn_right(facing)
+      guard_state = {loc, turn_right}
+
+      %{
         state
-        | facing: turn_right(state.facing),
-          previous_guard_states:
-            MapSet.put(state.previous_guard_states, {state.loc, turn_right(state.facing)}),
-          in_loop?:
-            MapSet.member?(state.previous_guard_states, {state.loc, turn_right(state.facing)})
+        | facing: turn_right,
+          previous_guard_states: MapSet.put(previous_guard_states, guard_state),
+          in_loop?: MapSet.member?(previous_guard_states, guard_state)
       }
     else
-      x = elem(new_loc, 0)
-      y = elem(new_loc, 1)
+      {x, y} = new_loc
       on_map? = x >= 0 and x < state.w and y >= 0 and y < state.h
+      guard_state = {new_loc, state.facing}
 
-      %__MODULE__{
+      %{
         state
         | loc: new_loc,
-          visitted: (on_map? && MapSet.put(state.visitted, new_loc)) || state.visitted,
+          visitted: (on_map? && MapSet.put(state.visitted, new_loc)) || visitted,
           on_map?: on_map?,
-          previous_guard_states: MapSet.put(state.previous_guard_states, {new_loc, state.facing}),
-          in_loop?: MapSet.member?(state.previous_guard_states, {new_loc, state.facing})
+          previous_guard_states: MapSet.put(previous_guard_states, guard_state),
+          in_loop?: MapSet.member?(previous_guard_states, guard_state)
       }
     end
   end
 
   def run_until_off_map_or_in_loop(state) when state.on_map? and not state.in_loop? do
-    new_state =
-      step(state)
-
-    # |> IO.inspect(label: "Step")
-
-    run_until_off_map_or_in_loop(new_state)
+    run_until_off_map_or_in_loop(step(state))
   end
 
   def run_until_off_map_or_in_loop(state) do
@@ -140,7 +139,7 @@ defmodule D06Test do
 
   defp new_pos_produces_loop?(state, new_pos) do
     state =
-      run_until_off_map_or_in_loop(%__MODULE__{
+      run_until_off_map_or_in_loop(%{
         state
         | obstructions: MapSet.put(state.obstructions, new_pos)
       })
@@ -160,7 +159,7 @@ defmodule D06Test do
 
   defp part2_concurrent(state) do
     obstructions = get_possible_new_obstruction_positions(state)
-    max_concurrency = System.schedulers_online() * 2
+    max_concurrency = System.schedulers_online() * 32
 
     Enum.chunk_every(obstructions, max_concurrency)
     |> Enum.map(fn obstructions_chunk ->
@@ -170,18 +169,8 @@ defmodule D06Test do
     |> Enum.sum()
   end
 
-  defp part2_timer(state) do
-    obstructions = get_possible_new_obstruction_positions(state)
-
-    count_looping_obstructions(state, obstructions)
-  end
-
   defp part2(state) do
-    IO.puts("Calculating part 2, this takes a while...")
     {time, count} = :timer.tc(&part2_concurrent/1, [state])
-    IO.puts("Part 2 concurrent: #{count} in #{time / 1000}ms")
-    {time, count} = :timer.tc(&part2_timer/1, [state])
-
     IO.puts("Part 2: #{count} in #{time / 1000}ms")
   end
 
