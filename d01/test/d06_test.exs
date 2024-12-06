@@ -129,10 +129,6 @@ defmodule D06Test do
     IO.puts("Part 1: #{count} in #{time / 1000}ms")
   end
 
-  defp can_be_new_obstruction?(state, loc) do
-    not (MapSet.member?(state.obstructions, loc) and loc != state.loc)
-  end
-
   defp get_possible_new_obstruction_positions(state) do
     # Return everywhere the guard visits, minus the starting location
     start_loc = state.loc
