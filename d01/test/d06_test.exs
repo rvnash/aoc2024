@@ -134,14 +134,12 @@ defmodule D06Test do
   end
 
   defp get_possible_new_obstruction_positions(state) do
-    for x <- 0..(state.w - 1), y <- 0..(state.h - 1), reduce: [] do
-      acc ->
-        if can_be_new_obstruction?(state, {x, y}) do
-          [{x, y} | acc]
-        else
-          acc
-        end
-    end
+    # Return everywhere the guard visits, minus the starting location
+    start_loc = state.loc
+    state = run_until_off_map_or_in_loop(state)
+
+    MapSet.delete(state.visitted, start_loc)
+    |> MapSet.to_list()
   end
 
   defp new_pos_produces_loop?(state, new_pos) do
