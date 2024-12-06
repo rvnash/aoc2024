@@ -33,7 +33,7 @@ defmodule D06Test do
   end
 
   def read_map do
-    {:ok, content} = File.read("/Users/nash/src/aoc2024/d01/test/06.txt")
+    {:ok, content} = File.read("./test/06.txt")
 
     # content = """
     # ....#.....
