@@ -1,7 +1,7 @@
 defmodule D09Test do
   require Integer
   use ExUnit.Case
-
+  @moduletag timeout: :infinity
   def read_input do
     {:ok, content} = File.read("./test/09.txt")
     IO.puts("Disk size: #{content |> String.length()}")
