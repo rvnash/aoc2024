@@ -1,43 +1,47 @@
 defmodule D10 do
+  @aoc_year "2024"
+  @aoc_day __MODULE__ |> to_string() |> String.slice(-2..-1)
+  # 0 is the file itself
+  @content 0
+
   def read_input do
-    {:ok, content} = File.read("./lib/10.txt")
-    # IO.puts("Map size: #{content |> String.length()}")
+    content = %{
+      0 => File.read!("./lib/#{@aoc_day}.txt"),
+      1 => """
+      .....0.
+      ..4321.
+      ..5..2.
+      ..6543.
+      ..7..4.
+      ..8765.
+      ..9....
+      """,
 
-    # 3
-    # content = """
-    # .....0.
-    # ..4321.
-    # ..5..2.
-    # ..6543.
-    # ..7..4.
-    # ..8765.
-    # ..9....
-    # """
+      # 13
+      2 => """
+      ..90..9
+      ...1.98
+      ...2..7
+      6543456
+      765.987
+      876....
+      987....
+      """,
 
-    # 13
-    # content = """
-    # ..90..9
-    # ...1.98
-    # ...2..7
-    # 6543456
-    # 765.987
-    # 876....
-    # 987....
-    # """
+      # 81
+      3 => """
+      89010123
+      78121874
+      87430965
+      96549874
+      45678903
+      32019012
+      01329801
+      10456732
+      """
+    }
 
-    # 81
-    # content = """
-    # 89010123
-    # 78121874
-    # 87430965
-    # 96549874
-    # 45678903
-    # 32019012
-    # 01329801
-    # 10456732
-    # """
-
-    content
+    content[@content]
     |> String.trim()
     |> String.split("\n", trim: true)
     |> Enum.reduce({%{}, 0}, fn line, {map, y} ->
@@ -114,24 +118,23 @@ defmodule D10 do
   end
 
   defp part1(map) do
-    {time, {count, path_count}} = :timer.tc(&part1_time/1, [map])
+    {time, {count, _path_count}} = :timer.tc(&part1_time/1, [map])
     IO.puts("Part 1: #{count} in #{time / 1000}ms")
+  end
+
+  defp part2_time(map) do
+    part1_time(map)
+  end
+
+  defp part2(map) do
+    {time, {_count, path_count}} = :timer.tc(&part2_time/1, [map])
     IO.puts("Part 2: #{path_count} in #{time / 1000}ms")
   end
 
-  # defp part2_time(_map) do
-  #   3
-  # end
-
-  # defp part2(map) do
-  #   {time, count} = :timer.tc(&part2_time/1, [map])
-  #   IO.puts("Part 2: #{count} in #{time / 1000}ms")
-  # end
-
   def run() do
-    IO.puts("Day 10")
+    IO.puts("AOC #{@aoc_year} Day #{@aoc_day} Content #{@content}")
     map = read_input()
     part1(map)
-    # part2(map)
+    part2(map)
   end
 end
