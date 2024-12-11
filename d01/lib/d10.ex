@@ -59,11 +59,11 @@ defmodule D10 do
   end
 
   defp put_or_join({ms, path_counts}, pos, path_count) do
-    # if MapSet.member?(ms, pos) do
-    #   IO.puts("Joining #{elem(pos, 0)}, #{elem(pos, 1)}")
-    # end
-
     {MapSet.put(ms, pos), Map.put(path_counts, pos, Map.get(path_counts, pos, 0) + path_count)}
+  end
+
+  defp next_step(map, elev, up, acc, path_count) do
+    if MapSet.member?(map[elev], up), do: put_or_join(acc, up, path_count), else: acc
   end
 
   defp climb_to_nine(_map, {ms, path_counts}, elev) when elev == 9, do: {ms, path_counts}
@@ -76,19 +76,10 @@ defmodule D10 do
       Enum.reduce(MapSet.to_list(ms), {MapSet.new(), path_counts}, fn {x, y},
                                                                       {_ms, path_counts} = acc ->
         path_count = Map.get(path_counts, {x, y})
-        up = {x, y - 1}
-        left = {x - 1, y}
-        right = {x, y + 1}
-        down = {x + 1, y}
-        acc = if MapSet.member?(map[elev], up), do: put_or_join(acc, up, path_count), else: acc
 
-        acc =
-          if MapSet.member?(map[elev], left), do: put_or_join(acc, left, path_count), else: acc
-
-        acc =
-          if MapSet.member?(map[elev], right), do: put_or_join(acc, right, path_count), else: acc
-
-        if MapSet.member?(map[elev], down), do: put_or_join(acc, down, path_count), else: acc
+        Enum.reduce([{x, y - 1}, {x - 1, y}, {x, y + 1}, {x + 1, y}], acc, fn pos, acc ->
+          next_step(map, elev, pos, acc, path_count)
+        end)
       end)
 
     climb_to_nine(map, {next_ms, next_path_counts}, elev)
