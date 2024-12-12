@@ -194,9 +194,7 @@ defmodule D12 do
   end
 
   defp calc_fencing_sides(regions) do
-    regions
-    |> Enum.sort(fn a, b -> a.apoint < b.apoint end)
-    |> Enum.reduce(0, fn region, acc ->
+    Enum.reduce(regions, 0, fn region, acc ->
       acc + region.sides * region.area
     end)
   end
