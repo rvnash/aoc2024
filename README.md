@@ -1,21 +1,18 @@
-# D01
+# AOC2024
 
-**TODO: Add description**
+**Advent of Code 2024**
 
-## Installation
+Being my first time at AOC, I'm gradually working on my boilerplate. First I started w/ each
+part being a test. Run these with the following command (up to day 9).
 
-If [available in Hex](https://hex.pm/docs/publish), the package can be installed
-by adding `d01` to your list of dependencies in `mix.exs`:
-
-```elixir
-def deps do
-  [
-    {:d01, "~> 0.1.0"}
-  ]
-end
+```
+mix test test/dxx_test.exs
 ```
 
-Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
-and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
-be found at <https://hexdocs.pm/d01>.
+But then I didn't like that the language server wasn't running on the script files, so at day 10 I switched to just making modules for each day, and running with this command.
 
+```
+mix run -e Dxx.run
+```
+
+My appologies if anyone finds there way to this code, and the organization is so awful.
