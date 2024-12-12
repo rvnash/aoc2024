@@ -63,16 +63,16 @@ defmodule D12 do
     array
   end
 
-  def puts_map(omap) do
-    for y <- 0..(Arrays.size(omap) - 1) do
-      for x <- 0..(Arrays.size(omap[y]) - 1) do
-        IO.write(omap[y][x])
+  def puts_map(original_map) do
+    for y <- 0..(Arrays.size(original_map) - 1) do
+      for x <- 0..(Arrays.size(original_map[y]) - 1) do
+        IO.write(original_map[y][x])
       end
 
       IO.puts("")
     end
 
-    omap
+    original_map
   end
 
   defp pad_top_bottom([head | _] = array) do
@@ -80,110 +80,129 @@ defmodule D12 do
     [String.duplicate(".", width)] ++ array ++ [String.duplicate(".", width)]
   end
 
-  defp spaces_around(omap, x, y, c) do
-    if(omap[y - 1][x] != c, do: 1, else: 0) +
-      if(omap[y + 1][x] != c, do: 1, else: 0) +
-      if(omap[y][x + 1] != c, do: 1, else: 0) +
-      if omap[y][x - 1] != c, do: 1, else: 0
+  defp perimeter_contribution(original_map, x, y, crop) do
+    if(original_map[y - 1][x] != crop, do: 1, else: 0) +
+      if(original_map[y + 1][x] != crop, do: 1, else: 0) +
+      if(original_map[y][x + 1] != crop, do: 1, else: 0) +
+      if original_map[y][x - 1] != crop, do: 1, else: 0
   end
 
-  defp outside_tr(omap, x, y, c) do
-    if omap[y - 1][x] != c and omap[y][x + 1] != c, do: 1, else: 0
+  defp outside_top_right(original_map, x, y, crop) do
+    if original_map[y - 1][x] != crop and original_map[y][x + 1] != crop, do: 1, else: 0
   end
 
-  defp outside_br(omap, x, y, c) do
-    if omap[y][x + 1] != c and omap[y + 1][x] != c, do: 1, else: 0
+  defp outside_bottom_right(original_map, x, y, crop) do
+    if original_map[y][x + 1] != crop and original_map[y + 1][x] != crop, do: 1, else: 0
   end
 
-  defp outside_tl(omap, x, y, c) do
-    if omap[y][x - 1] != c and omap[y - 1][x] != c, do: 1, else: 0
+  defp outside_top_left(original_map, x, y, crop) do
+    if original_map[y][x - 1] != crop and original_map[y - 1][x] != crop, do: 1, else: 0
   end
 
-  defp outside_bl(omap, x, y, c) do
-    if omap[y][x - 1] != c and omap[y + 1][x] != c, do: 1, else: 0
+  defp outside_bottom_left(original_map, x, y, crop) do
+    if original_map[y][x - 1] != crop and original_map[y + 1][x] != crop, do: 1, else: 0
   end
 
-  defp inside_tr(omap, x, y, c) do
-    if omap[y - 1][x] == c and omap[y][x + 1] == c and omap[y - 1][x + 1] != c, do: 1, else: 0
+  defp inside_top_right(original_map, x, y, crop) do
+    if original_map[y - 1][x] == crop and original_map[y][x + 1] == crop and
+         original_map[y - 1][x + 1] != crop,
+       do: 1,
+       else: 0
   end
 
-  defp inside_br(omap, x, y, c) do
-    if omap[y][x + 1] == c and omap[y + 1][x] == c and omap[y + 1][x + 1] != c, do: 1, else: 0
+  defp inside_bottom_right(original_map, x, y, crop) do
+    if original_map[y][x + 1] == crop and original_map[y + 1][x] == crop and
+         original_map[y + 1][x + 1] != crop,
+       do: 1,
+       else: 0
   end
 
-  defp inside_tl(omap, x, y, c) do
-    if omap[y - 1][x] == c and omap[y][x - 1] == c and omap[y - 1][x - 1] != c, do: 1, else: 0
+  defp inside_top_left(original_map, x, y, crop) do
+    if original_map[y - 1][x] == crop and original_map[y][x - 1] == crop and
+         original_map[y - 1][x - 1] != crop,
+       do: 1,
+       else: 0
   end
 
-  defp inside_bl(omap, x, y, c) do
-    if omap[y][x - 1] == c and omap[y + 1][x] == c and omap[y + 1][x - 1] != c, do: 1, else: 0
+  defp inside_bottom_left(original_map, x, y, crop) do
+    if original_map[y][x - 1] == crop and original_map[y + 1][x] == crop and
+         original_map[y + 1][x - 1] != crop,
+       do: 1,
+       else: 0
   end
 
-  defp corners_around(omap, x, y, c) do
-    outside_tr(omap, x, y, c) +
-      outside_br(omap, x, y, c) +
-      outside_tl(omap, x, y, c) +
-      outside_bl(omap, x, y, c) +
-      inside_tr(omap, x, y, c) +
-      inside_br(omap, x, y, c) +
-      inside_tl(omap, x, y, c) +
-      inside_bl(omap, x, y, c)
+  defp num_corners(original_map, x, y, crop) do
+    outside_top_right(original_map, x, y, crop) +
+      outside_bottom_right(original_map, x, y, crop) +
+      outside_top_left(original_map, x, y, crop) +
+      outside_bottom_left(original_map, x, y, crop) +
+      inside_top_right(original_map, x, y, crop) +
+      inside_bottom_right(original_map, x, y, crop) +
+      inside_top_left(original_map, x, y, crop) +
+      inside_bottom_left(original_map, x, y, crop)
   end
 
-  defp build_region(omap, vmap, x, y, region) do
+  defp build_region(original_map, visited_map, x, y, region) do
     region = Map.update!(region, :area, &(&1 + 1))
-    region = Map.update!(region, :perimeter, &(&1 + spaces_around(omap, x, y, region.c)))
-    region = Map.update!(region, :sides, &(&1 + corners_around(omap, x, y, region.c)))
-    vmap = Arrays.replace(vmap, y, Arrays.replace(vmap[y], x, "."))
 
-    {region, vmap} =
-      if vmap[y - 1][x] == region.c,
-        do: build_region(omap, vmap, x, y - 1, region),
-        else: {region, vmap}
+    region =
+      Map.update!(
+        region,
+        :perimeter,
+        &(&1 + perimeter_contribution(original_map, x, y, region.crop))
+      )
 
-    {region, vmap} =
-      if vmap[y + 1][x] == region.c,
-        do: build_region(omap, vmap, x, y + 1, region),
-        else: {region, vmap}
+    region = Map.update!(region, :sides, &(&1 + num_corners(original_map, x, y, region.crop)))
+    visited_map = Arrays.replace(visited_map, y, Arrays.replace(visited_map[y], x, "."))
 
-    {region, vmap} =
-      if vmap[y][x - 1] == region.c,
-        do: build_region(omap, vmap, x - 1, y, region),
-        else: {region, vmap}
+    {region, visited_map} =
+      if visited_map[y - 1][x] == region.crop,
+        do: build_region(original_map, visited_map, x, y - 1, region),
+        else: {region, visited_map}
 
-    {region, vmap} =
-      if vmap[y][x + 1] == region.c,
-        do: build_region(omap, vmap, x + 1, y, region),
-        else: {region, vmap}
+    {region, visited_map} =
+      if visited_map[y + 1][x] == region.crop,
+        do: build_region(original_map, visited_map, x, y + 1, region),
+        else: {region, visited_map}
 
-    {region, vmap}
+    {region, visited_map} =
+      if visited_map[y][x - 1] == region.crop,
+        do: build_region(original_map, visited_map, x - 1, y, region),
+        else: {region, visited_map}
+
+    {region, visited_map} =
+      if visited_map[y][x + 1] == region.crop,
+        do: build_region(original_map, visited_map, x + 1, y, region),
+        else: {region, visited_map}
+
+    {region, visited_map}
   end
 
-  defp find_regions(_omap, _vmap, acc, _x, y, _w, h) when y == h, do: acc
+  defp find_regions(_original_map, _visited_map, regions, _x, y, _w, h) when y == h, do: regions
 
-  defp find_regions(omap, vmap, acc, x, y, w, h) do
-    {acc, vmap} =
-      case vmap[y][x] do
+  defp find_regions(original_map, visited_map, regions, x, y, w, h) do
+    {regions, visited_map} =
+      case visited_map[y][x] do
         "." ->
-          {acc, vmap}
+          {regions, visited_map}
 
-        c ->
-          {region, vmap} =
-            build_region(omap, vmap, x, y, %{
-              c: c,
+        crop ->
+          {region, visited_map} =
+            build_region(original_map, visited_map, x, y, %{
+              crop: crop,
               area: 0,
               perimeter: 0,
               sides: 0,
               apoint: {x, y}
             })
 
-          {[region | acc], vmap}
+          {[region | regions], visited_map}
       end
 
     if x == w - 1 do
-      find_regions(omap, vmap, acc, 0, y + 1, w, h)
+      find_regions(original_map, visited_map, regions, 0, y + 1, w, h)
     else
-      find_regions(omap, vmap, acc, x + 1, y, w, h)
+      find_regions(original_map, visited_map, regions, x + 1, y, w, h)
     end
   end
 
@@ -199,30 +218,46 @@ defmodule D12 do
     end)
   end
 
-  defp part1_time(omap) do
-    find_regions(omap, omap, [], 0, 0, Arrays.size(omap[0]), Arrays.size(omap))
+  defp part1_time(original_map) do
+    find_regions(
+      original_map,
+      original_map,
+      [],
+      0,
+      0,
+      Arrays.size(original_map[0]),
+      Arrays.size(original_map)
+    )
     |> calc_fencing()
   end
 
-  defp part1(omap) do
-    {time, count} = :timer.tc(&part1_time/1, [omap])
+  defp part1(original_map) do
+    {time, count} = :timer.tc(&part1_time/1, [original_map])
     IO.puts("Part 1: #{count} in #{time / 1000}ms")
   end
 
-  defp part2_time(omap) do
-    find_regions(omap, omap, [], 0, 0, Arrays.size(omap[0]), Arrays.size(omap))
+  defp part2_time(original_map) do
+    find_regions(
+      original_map,
+      original_map,
+      [],
+      0,
+      0,
+      Arrays.size(original_map[0]),
+      Arrays.size(original_map)
+    )
     |> calc_fencing_sides()
   end
 
-  defp part2(omap) do
-    {time, count} = :timer.tc(&part2_time/1, [omap])
+  defp part2(original_map) do
+    {time, count} = :timer.tc(&part2_time/1, [original_map])
     IO.puts("Part 2: #{count} in #{time / 1000}ms")
   end
 
   def run() do
     IO.puts("AOC #{@aoc_year} Day #{@aoc_day} Content #{@content}")
-    omap = read_input()
-    part1(omap)
-    part2(omap)
+    original_map = read_input()
+    part1(original_map)
+    part2(original_map)
   end
 end
