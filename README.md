@@ -15,4 +15,4 @@ But then I didn't like that the language server wasn't running on the script fil
 mix run -e Dxx.run
 ```
 
-My appologies if anyone finds there way to this code, and the organization is so awful.
+My appologies if anyone finds their way to this code, and the organization is so awful.
