@@ -69,20 +69,19 @@ defmodule D13 do
     {px, py} == {ax * a_presses + bx * b_presses, ay * a_presses + by * b_presses}
   end
 
-  defp cost_to_get_prize(machine) do
-    {ax, ay} = machine.a
-    {bx, by} = machine.b
+  defp cost_to_get_prize(%{a: {ax, ay}, b: {bx, by}, prize: prize} = machine) do
     mat = {{ax, bx}, {ay, by}}
 
     case det_2x2(mat) do
       0 ->
-        # The input data doen't appear to have any parallel lines
-        # (i.e. no solutions), but just in case print out this line and return 0
+        # The machine represents parallel lines (i.e. no solutions)
+        # The input data doesn't do this to us,
+        # but just in case print out this line and return 0
         IO.puts("Machine #{inspect(machine)} parallel lines")
         0
 
       _ ->
-        {a_presses, b_presses} = solve_2x2(mat, machine.prize)
+        {a_presses, b_presses} = solve_2x2(mat, prize)
 
         # The above solution is done in float numbers, but rounding to the nearest integer may break the solution
         {a_presses, b_presses} = {round(a_presses), round(b_presses)}
