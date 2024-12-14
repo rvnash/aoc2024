@@ -54,19 +54,28 @@ defmodule D14 do
   end
 
   defp get_grid_str(robots) do
-    Enum.reduce(0..(@height - 1), "", fn y, acc ->
-      Enum.reduce(0..(@width - 1), acc, fn x, acc ->
-        number_robots =
-          Enum.filter(robots, fn robot -> robot.x == x and robot.y == y end) |> Enum.count()
+    mapset =
+      Enum.reduce(robots, MapSet.new(), fn robot, acc ->
+        MapSet.put(acc, {robot.x, robot.y})
+      end)
 
-        if number_robots > 0 do
-          acc <> "#{number_robots}"
-        else
-          acc <> "."
-        end
-      end) <>
-        "\n"
-    end)
+    lines =
+      Enum.reduce(0..(@height - 1), [], fn y, acc ->
+        [
+          Enum.reduce(0..(@width - 1), [], fn x, acc ->
+            number_robots = MapSet.member?(mapset, {x, y})
+
+            if number_robots do
+              ["*" | acc]
+            else
+              [" " | acc]
+            end
+          end)
+          | acc
+        ]
+      end)
+
+    Enum.join(Enum.map(Enum.reverse(lines), &Enum.join(Enum.reverse(&1))), "\n")
   end
 
   defp move_robot(robot, seconds) do
@@ -118,15 +127,16 @@ defmodule D14 do
 
   defp is_christmas_tree?(robots) do
     grid = get_grid_str(robots)
-    String.contains?(grid, "1111111111111111")
+    String.contains?(grid, "****************")
   end
 
   defp part2_time(robots) do
     Enum.reduce_while(1..1_000_000_000_000, 0, fn seconds, _ ->
-      IO.puts("Seconds: #{seconds}")
+      # IO.puts(IO.ANSI.cursor(0, 0))
+      # IO.puts("Seconds: #{seconds}")
+      # print_grid(move_robots(robots, seconds))
 
       if is_christmas_tree?(move_robots(robots, seconds)) do
-        print_grid(move_robots(robots, seconds))
         {:halt, seconds}
       else
         {:cont, 0}
