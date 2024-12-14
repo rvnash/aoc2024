@@ -63,9 +63,7 @@ defmodule D14 do
       Enum.reduce(0..(@height - 1), [], fn y, acc ->
         [
           Enum.reduce(0..(@width - 1), [], fn x, acc ->
-            number_robots = MapSet.member?(mapset, {x, y})
-
-            if number_robots do
+            if MapSet.member?(mapset, {x, y}) do
               ["*" | acc]
             else
               [" " | acc]
@@ -75,7 +73,7 @@ defmodule D14 do
         ]
       end)
 
-    Enum.join(Enum.map(Enum.reverse(lines), &Enum.join(Enum.reverse(&1))), "\n")
+    Enum.reverse(lines) |> Enum.map(&Enum.join(Enum.reverse(&1))) |> Enum.join("\n")
   end
 
   defp move_robot(robot, seconds) do
@@ -132,10 +130,6 @@ defmodule D14 do
 
   defp part2_time(robots) do
     Enum.reduce_while(1..1_000_000_000_000, 0, fn seconds, _ ->
-      # IO.puts(IO.ANSI.cursor(0, 0))
-      # IO.puts("Seconds: #{seconds}")
-      # print_grid(move_robots(robots, seconds))
-
       if is_christmas_tree?(move_robots(robots, seconds)) do
         {:halt, seconds}
       else
