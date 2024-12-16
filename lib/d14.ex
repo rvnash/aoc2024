@@ -9,7 +9,7 @@ defmodule D14 do
   @height 103
   @horizontal_middle div(@width, 2)
   @vertical_middle div(@height, 2)
-  @debug false
+  # @debug false
 
   def read_input do
     content = %{
@@ -30,28 +30,28 @@ defmodule D14 do
       """
     }
 
-    robots =
-      content[@content]
-      |> String.split("\n", trim: true)
-      |> Enum.map(fn line ->
-        [[_, x], [_, y], [_, vx], [_, vy], [_, _]] = Regex.scan(~r/[^-\d]*([-\d]*)/, line)
+    # robots =
+    content[@content]
+    |> String.split("\n", trim: true)
+    |> Enum.map(fn line ->
+      [[_, x], [_, y], [_, vx], [_, vy], [_, _]] = Regex.scan(~r/[^-\d]*([-\d]*)/, line)
 
-        %{
-          x: String.to_integer(x),
-          y: String.to_integer(y),
-          vx: String.to_integer(vx),
-          vy: String.to_integer(vy)
-        }
-      end)
+      %{
+        x: String.to_integer(x),
+        y: String.to_integer(y),
+        vx: String.to_integer(vx),
+        vy: String.to_integer(vy)
+      }
+    end)
 
-    if @debug, do: print_grid(robots), else: robots
+    # if @debug, do: print_grid(robots), else: robots
   end
 
-  defp print_grid(robots) do
-    str = get_grid_str(robots)
-    IO.puts(str)
-    robots
-  end
+  # defp print_grid(robots) do
+  #   str = get_grid_str(robots)
+  #   IO.puts(str)
+  #   robots
+  # end
 
   defp get_grid_str(robots) do
     mapset =
