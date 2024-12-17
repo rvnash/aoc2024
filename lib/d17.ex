@@ -23,37 +23,31 @@ defmodule D17 do
       """
     }
 
-    machine_state =
-      content[@content]
-      |> String.trim()
-      |> String.split("\n", trim: true)
-      |> Enum.map(fn line ->
-        case String.split(line, ": ") do
-          ["Register A", value] ->
-            {:a, String.to_integer(value)}
+    content[@content]
+    |> String.trim()
+    |> String.split("\n", trim: true)
+    |> Enum.map(fn line ->
+      case String.split(line, ": ") do
+        ["Register A", value] ->
+          {:a, String.to_integer(value)}
 
-          ["Register B", value] ->
-            {:b, String.to_integer(value)}
+        ["Register B", value] ->
+          {:b, String.to_integer(value)}
 
-          ["Register C", value] ->
-            {:c, String.to_integer(value)}
+        ["Register C", value] ->
+          {:c, String.to_integer(value)}
 
-          ["Program", value] ->
-            {:rom,
-             String.split(value, ",", trim: true)
-             |> Enum.map(&String.to_integer/1)
-             |> Enum.with_index()
-             |> Enum.map(fn {value, index} -> {index, value} end)
-             |> Map.new()}
-        end
-      end)
-      |> Map.new()
-      |> Map.put(:ip, 0)
-      |> Map.put(:state, :running)
-      |> Map.put(:output, [])
-      |> Map.put(:counter, 0)
-
-    machine_state
+        ["Program", value] ->
+          {:rom,
+           String.split(value, ",", trim: true)
+           |> Enum.map(&String.to_integer/1)
+           |> Enum.with_index()
+           |> Enum.map(fn {value, index} -> {index, value} end)
+           |> Map.new()}
+      end
+    end)
+    |> Map.new()
+    |> Map.merge(%{ip: 0, state: :running, output: []})
   end
 
   def combo(machine_state, 4), do: machine_state.a
@@ -128,13 +122,9 @@ defmodule D17 do
     end
   end
 
-  defp increment_counter(machine_state) do
-    %{machine_state | counter: machine_state.counter + 1}
-  end
-
   defp execute_instruction(%{ip: ip, rom: rom, state: state} = machine_state)
        when state == :running do
-    execute_opcode(machine_state, {rom[ip], rom[ip + 1]}) |> maybe_halt() |> increment_counter()
+    execute_opcode(machine_state, {rom[ip], rom[ip + 1]}) |> maybe_halt()
   end
 
   defp execute_instruction(machine_state), do: machine_state
