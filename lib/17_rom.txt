@@ -1,0 +1,8 @@
+0: bst B <- A mod 8
+2: bxl B <- B xor 5
+4: cdv C <- A / 2^B
+6: bxc B <- B xor C
+8: bxl B <- B xor 6
+10: adv A <- A/8
+12: out B mod 8
+14: jnz 0
