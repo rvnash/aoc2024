@@ -13,7 +13,8 @@ defmodule D01.MixProject do
 
   defp deps do
     [
-      {:arrays, "~> 2.1.1"}
+      {:arrays, "~> 2.1.1"},
+      {:libgraph, "~> 0.16.0"}
     ]
   end
 end
