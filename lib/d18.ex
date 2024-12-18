@@ -75,20 +75,20 @@ defmodule D18 do
            y >= h do
         {paths, visited}
       else
-        {:gb_sets.insert({score + 1, pos, [pos | passed]}, paths), MapSet.put(visited, pos)}
+        {:queue.in({score + 1, pos, [pos | passed]}, paths), MapSet.put(visited, pos)}
       end
     end)
   end
 
   defp explore_paths(grid, w, h, paths, visited, end_pos) do
-    if :gb_sets.is_empty(paths) do
+    if :queue.is_empty(paths) do
       :failed
     else
-      case :gb_sets.take_smallest(paths) do
-        {{_score, ^end_pos, passed}, _} ->
+      case :queue.out(paths) do
+        {{:value, {_score, ^end_pos, passed}}, _} ->
           passed
 
-        {{score, position, passed}, paths} ->
+        {{:value, {score, position, passed}}, paths} ->
           {paths, visited} = add_paths(grid, w, h, paths, visited, position, score, passed)
           explore_paths(grid, w, h, paths, visited, end_pos)
       end
@@ -96,7 +96,8 @@ defmodule D18 do
   end
 
   defp shortest_path_time(grid, w, h, start_pos, end_pos) do
-    paths = :gb_sets.singleton({0, start_pos, []})
+    q = :queue.new()
+    paths = :queue.in({0, start_pos, []}, q)
     explore_paths(grid, w, h, paths, MapSet.new(), end_pos)
   end
 
