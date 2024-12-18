@@ -68,44 +68,46 @@ defmodule D18 do
   end
 
   # -------------------------------------------
-  defp add_paths(grid, w, h, paths, visited, {x, y}, score, passed) do
+  defp add_paths(grid, w, h, {paths, visited}, {x, y}, passed) do
     [{x + 1, y}, {x - 1, y}, {x, y + 1}, {x, y - 1}]
     |> Enum.reduce({paths, visited}, fn {x, y} = pos, {paths, visited} ->
       if MapSet.member?(visited, pos) or MapSet.member?(grid, pos) or x < 0 or x >= w or y < 0 or
            y >= h do
         {paths, visited}
       else
-        {:queue.in({score + 1, pos, [pos | passed]}, paths), MapSet.put(visited, pos)}
+        {:queue.in({pos, [pos | passed]}, paths), MapSet.put(visited, pos)}
       end
     end)
   end
 
-  defp explore_paths(grid, w, h, paths, visited, end_pos) do
-    if :queue.is_empty(paths) do
-      :failed
-    else
-      case :queue.out(paths) do
-        {{:value, {_score, ^end_pos, passed}}, _} ->
-          passed
+  defp explore_paths(grid, w, h, {paths, visited}, end_pos) do
+    case :queue.out(paths) do
+      {:empty, _} ->
+        :failed
 
-        {{:value, {score, position, passed}}, paths} ->
-          {paths, visited} = add_paths(grid, w, h, paths, visited, position, score, passed)
-          explore_paths(grid, w, h, paths, visited, end_pos)
-      end
+      {{:value, {^end_pos, passed}}, _} ->
+        passed
+
+      {{:value, {position, passed}}, paths} ->
+        explore_paths(
+          grid,
+          w,
+          h,
+          add_paths(grid, w, h, {paths, visited}, position, passed),
+          end_pos
+        )
     end
   end
 
-  defp shortest_path_time(grid, w, h, start_pos, end_pos) do
-    q = :queue.new()
-    paths = :queue.in({0, start_pos, []}, q)
-    explore_paths(grid, w, h, paths, MapSet.new(), end_pos)
+  defp get_shortest_path(grid, w, h, start_pos, end_pos) do
+    explore_paths(grid, w, h, {:queue.in({start_pos, []}, :queue.new()), MapSet.new()}, end_pos)
   end
 
   defp part1_time(falling_bytes) do
     grid = make_grid(@drops, falling_bytes)
     {w, h} = get_width_height(falling_bytes)
 
-    shortest_path_time(grid, w, h, {0, 0}, {w - 1, h - 1})
+    get_shortest_path(grid, w, h, {0, 0}, {w - 1, h - 1})
     |> Enum.count()
   end
 
@@ -131,9 +133,8 @@ defmodule D18 do
     {w, h} = get_width_height(falling_bytes)
 
     binary_search({1025, Enum.count(falling_bytes)}, fn drops ->
-      grid = make_grid(drops, falling_bytes)
-
-      shortest_path_time(grid, w, h, {0, 0}, {w - 1, h - 1}) != :failed
+      make_grid(drops, falling_bytes)
+      |> get_shortest_path(w, h, {0, 0}, {w - 1, h - 1}) != :failed
     end)
     |> then(&Enum.at(falling_bytes, &1 - 1))
     |> then(&"#{elem(&1, 0)},#{elem(&1, 1)}")
