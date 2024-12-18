@@ -69,30 +69,13 @@ defmodule D18 do
 
   # -------------------------------------------
   defp add_paths(grid, w, h, paths, visited, {x, y}, score, passed) do
-    score = score + 1
-
-    [
-      {x + 1, y},
-      {x - 1, y},
-      {x, y + 1},
-      {x, y - 1}
-    ]
+    [{x + 1, y}, {x - 1, y}, {x, y + 1}, {x, y - 1}]
     |> Enum.reduce({paths, visited}, fn {x, y} = pos, {paths, visited} ->
-      passed = [pos | passed]
-
-      if x < 0 or x >= w or y < 0 or y >= h do
+      if MapSet.member?(visited, pos) or MapSet.member?(grid, pos) or x < 0 or x >= w or y < 0 or
+           y >= h do
         {paths, visited}
       else
-        if MapSet.member?(visited, pos) do
-          # IO.inspect(pos, label: "Visited? #{inspect(visited)} #{MapSet.member?(visited, pos)}")
-          {paths, visited}
-        else
-          if MapSet.member?(grid, pos) do
-            {paths, visited}
-          else
-            {:gb_sets.insert({score, pos, passed}, paths), MapSet.put(visited, pos)}
-          end
-        end
+        {:gb_sets.insert({score + 1, pos, [pos | passed]}, paths), MapSet.put(visited, pos)}
       end
     end)
   end
@@ -106,10 +89,6 @@ defmodule D18 do
           passed
 
         {{score, position, passed}, paths} ->
-          # IO.puts(
-          #   "Score: #{score} Position: #{inspect(position)} Passed: #{Enum.count(passed)} Visited: #{Enum.count(visited)} Paths: #{:gb_sets.size(paths)}"
-          # )
-
           {paths, visited} = add_paths(grid, w, h, paths, visited, position, score, passed)
           explore_paths(grid, w, h, paths, visited, end_pos)
       end
