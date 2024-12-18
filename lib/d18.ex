@@ -115,18 +115,27 @@ defmodule D18 do
   end
 
   # ----------------------------------------------
+  defp binary_search({min, max}, _fun) when min == max, do: min
+
+  defp binary_search({min, max}, fun) do
+    mid = div(min + max, 2)
+
+    if fun.(mid) do
+      binary_search({mid + 1, max}, fun)
+    else
+      binary_search({min, mid - 1}, fun)
+    end
+  end
 
   defp part2_time(falling_bytes) do
     {w, h} = get_width_height(falling_bytes)
 
-    Enum.reduce_while(1025..Enum.count(falling_bytes), nil, fn drops, _ ->
+    binary_search({1025, Enum.count(falling_bytes)}, fn drops ->
       grid = make_grid(drops, falling_bytes)
 
-      case shortest_path_time(grid, w, h, {0, 0}, {w - 1, h - 1}) do
-        :failed -> {:halt, Enum.at(falling_bytes, drops - 1)}
-        _ -> {:cont, drops}
-      end
+      shortest_path_time(grid, w, h, {0, 0}, {w - 1, h - 1}) != :failed
     end)
+    |> then(&Enum.at(falling_bytes, &1 - 1))
     |> then(&"#{elem(&1, 0)},#{elem(&1, 1)}")
   end
 
