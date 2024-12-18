@@ -139,7 +139,7 @@ defmodule D18 do
   defp part2_time(falling_bytes) do
     {w, h} = get_width_height(falling_bytes)
 
-    Enum.reduce_while(1..Enum.count(falling_bytes), nil, fn drops, _ ->
+    Enum.reduce_while(1025..Enum.count(falling_bytes), nil, fn drops, _ ->
       grid = make_grid(drops, falling_bytes)
 
       case shortest_path_time(grid, w, h, {0, 0}, {w - 1, h - 1}) do
