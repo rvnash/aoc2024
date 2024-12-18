@@ -132,7 +132,7 @@ defmodule D18 do
   defp part2_time(falling_bytes) do
     {w, h} = get_width_height(falling_bytes)
 
-    binary_search({1025, Enum.count(falling_bytes)}, fn drops ->
+    binary_search({@drops + 1, Enum.count(falling_bytes)}, fn drops ->
       make_grid(drops, falling_bytes)
       |> get_shortest_path(w, h, {0, 0}, {w - 1, h - 1}) != :failed
     end)
