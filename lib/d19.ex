@@ -85,16 +85,11 @@ defmodule D19 do
       cached_sum ->
         cached_sum
     end
-
-    # |> IO.inspect(label: "Final for #{pattern}")
   end
 
   defp part2_time({towels, patterns}) do
-    # patterns = ["gbbr"]
-
     Task.async_stream(patterns, fn pattern ->
       ways_to_match(towels, pattern)
-      # System.halt()
     end)
     |> Enum.map(&elem(&1, 1))
     |> Enum.sum()
