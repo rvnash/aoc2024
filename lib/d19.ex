@@ -68,19 +68,17 @@ defmodule D19 do
   defp ways_to_match(towels, pattern) do
     case Process.get(pattern) do
       nil ->
-        count =
-          Enum.reduce(towels, 0, fn towel, sum ->
-            case pattern do
-              <<^towel::binary, rest_of_pattern::binary>> ->
-                ways_to_match(towels, rest_of_pattern) + sum
+        Enum.reduce(towels, 0, fn towel, sum ->
+          case pattern do
+            <<^towel::binary, rest_of_pattern::binary>> ->
+              count = ways_to_match(towels, rest_of_pattern) + sum
+              Process.put(pattern, count)
+              count
 
-              _ ->
-                sum
-            end
-          end)
-
-        Process.put(pattern, count)
-        count
+            _ ->
+              sum
+          end
+        end)
 
       cached_sum ->
         cached_sum
