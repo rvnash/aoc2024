@@ -3,6 +3,7 @@ defmodule D20 do
   @aoc_day __MODULE__ |> to_string() |> String.slice(-2..-1)
   # 0 is the file itself
   @content 0
+  @savings_limit 100
 
   def read_input do
     content = %{
@@ -160,7 +161,7 @@ defmodule D20 do
   end
 
   defp find_all_dests_within(
-         maze_state,
+         %{w: w, h: h} = _maze_state,
          paths_pos_to_time,
          {startx, starty} = pos,
          dist,
@@ -170,23 +171,27 @@ defmodule D20 do
 
     for x <- (startx - dist)..(startx + dist),
         y <- (starty - dist)..(starty + dist),
+        x >= 0 and x < w and y > 0 and y < h and {x, y} != pos,
         reduce: map_of_cheats do
       acc ->
         end_pos = {x, y}
         end_dist = city_block_dist(pos, end_pos)
 
-        if x < 0 or x >= maze_state.w or y < 0 or y >= maze_state.h or
-             not Map.has_key?(paths_pos_to_time, end_pos) or end_pos == pos or
-             end_dist > dist do
+        if end_dist > dist or not Map.has_key?(paths_pos_to_time, end_pos) do
           acc
         else
-          end_time = Map.get(paths_pos_to_time, end_pos)
-          savings = end_time - start_time - end_dist
+          case Map.get(paths_pos_to_time, end_pos, nil) do
+            nil ->
+              acc
 
-          if savings > 0 do
-            Map.put(acc, {pos, end_pos}, savings)
-          else
-            acc
+            end_time ->
+              savings = end_time - start_time - end_dist
+
+              if savings >= @savings_limit do
+                Map.put(acc, {pos, end_pos}, savings)
+              else
+                acc
+              end
           end
         end
     end
@@ -197,13 +202,11 @@ defmodule D20 do
 
     make_cheat_list(maze_state, path_pos_to_time, max_cheat_length)
     |> Enum.group_by(fn {_cheat, savings} -> savings end)
-    |> Enum.sort()
     |> Enum.map(fn {savings, cheats} -> {savings, Enum.count(cheats)} end)
   end
 
   defp part1_time(maze_state) do
     map_cheat_times_to_path_length(maze_state, 2)
-    |> Enum.filter(fn {savings, _count} -> savings >= 100 end)
     |> Enum.map(fn {_savings, count} -> count end)
     |> Enum.sum()
   end
@@ -217,7 +220,6 @@ defmodule D20 do
 
   defp part2_time(maze_state) do
     map_cheat_times_to_path_length(maze_state, 20)
-    |> Enum.filter(fn {savings, _count} -> savings >= 100 end)
     |> Enum.map(fn {_savings, count} -> count end)
     |> Enum.sum()
   end
