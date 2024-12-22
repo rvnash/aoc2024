@@ -22,7 +22,7 @@ defmodule D22 do
       """
     }
 
-    # solve(content[@content], part: 2) |> IO.inspect(label: "Solve part 2")
+    solve(content[@content], part: 2) |> IO.inspect(label: "igorbs solve of part 2")
 
     content[@content]
     |> String.trim()
@@ -204,13 +204,6 @@ defmodule D22 do
 
         {sequence_to_price, consecutive_changes ++ acc}
       end)
-
-    for sequence_to_price <- sequences_to_price, reduce: [] do
-      acc ->
-        [sequence_to_price[[0, -1, 0, 1]] || 0 | acc]
-    end
-    |> Enum.sort()
-    |> IO.inspect(label: "Prices", limit: :infinity)
 
     consecutive_changes
     |> MapSet.new()
