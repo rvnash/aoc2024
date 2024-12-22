@@ -76,25 +76,23 @@ defmodule D22 do
         |> Enum.reverse()
       end)
 
-    buyers_sequences =
-      Enum.map(Enum.zip(buyers_diffs, buyers_prices), fn {diffs, prices} ->
-        [d0, d1, d2, d3 | diffs] = diffs
-        first = {d0, d1, d2, d3}
+    Enum.map(Enum.zip(buyers_diffs, buyers_prices), fn {diffs, prices} ->
+      [d0, d1, d2, d3 | diffs] = diffs
+      first = {d0, d1, d2, d3}
 
-        [_, _, _, _ | prices] = prices
+      [_, _, _, _ | prices] = prices
 
-        Enum.reduce(
-          Enum.zip(diffs, prices),
-          {first, %{}},
-          fn {diff, price}, {{_d0, d1, d2, d3}, sequences} ->
-            sequence = {d1, d2, d3, diff}
-            {sequence, Map.put_new(sequences, sequence, price)}
-          end
-        )
-        |> elem(1)
-      end)
-
-    find_best_sequence(buyers_sequences)
+      Enum.reduce(
+        Enum.zip(diffs, prices),
+        {first, %{}},
+        fn {diff, price}, {{_d0, d1, d2, d3}, sequences} ->
+          sequence = {d1, d2, d3, diff}
+          {sequence, Map.put_new(sequences, sequence, price)}
+        end
+      )
+      |> elem(1)
+    end)
+    |> find_best_sequence()
     |> elem(1)
   end
 
