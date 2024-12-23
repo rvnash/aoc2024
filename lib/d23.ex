@@ -82,17 +82,20 @@ defmodule D23 do
     Enum.reduce(computers, {MapSet.new(), 0}, fn computer, {connected_sets, largest_so_far} ->
       connected_to = MapSet.to_list(Map.get(connections, computer, MapSet.new()))
       combos = combinations(connected_to)
-      combos = Enum.filter(combos, &filter_combo_fn.(&1, {connected_sets, largest_so_far}))
+
+      combos =
+        Enum.filter(combos, &filter_combo_fn.(&1, computer, {connected_sets, largest_so_far}))
+
       connected_combos = Enum.filter(combos, &is_all_connected?(&1, connections))
 
       Enum.reduce(connected_combos, {connected_sets, largest_so_far}, fn combo,
                                                                          {connected_sets,
                                                                           largest_so_far} ->
-        new_set = [computer | combo]
+        new_set = [computer | combo] |> Enum.sort()
         count = Enum.count(new_set)
 
         {
-          MapSet.put(connected_sets, new_set |> Enum.sort()),
+          MapSet.put(connected_sets, {new_set, count}),
           max(largest_so_far, count)
         }
       end)
@@ -108,12 +111,9 @@ defmodule D23 do
   end
 
   defp part1_time({computers, connections, t_s}) do
-    connected_to_themseves(computers, connections, fn combo, _ ->
-      Enum.count(combo) == 2
-    end)
-    |> Enum.filter(fn set -> Enum.count(set) == 3 end)
-    |> Enum.filter(fn [a, b, c] ->
-      MapSet.member?(t_s, a) or MapSet.member?(t_s, b) or MapSet.member?(t_s, c)
+    connected_to_themseves(computers, connections, fn combo, computer, _ ->
+      Enum.count(combo) == 2 and
+        (MapSet.member?(t_s, computer) or Enum.any?(combo, &MapSet.member?(t_s, &1)))
     end)
     |> Enum.count()
   end
@@ -124,11 +124,13 @@ defmodule D23 do
   end
 
   defp part2_time({computers, connections, _t_s}) do
-    connected_to_themseves(computers, connections, fn combo, {_connected_sets, largest_so_far} ->
+    connected_to_themseves(computers, connections, fn combo,
+                                                      _,
+                                                      {_connected_sets, largest_so_far} ->
       Enum.count(combo) >= largest_so_far
     end)
-    |> Enum.sort(fn a, b -> Enum.count(a) > Enum.count(b) end)
-    |> List.first()
+    |> Enum.max_by(fn {_a, count} -> count end)
+    |> elem(0)
     |> Enum.join(",")
   end
 
