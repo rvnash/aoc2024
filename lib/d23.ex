@@ -125,7 +125,7 @@ defmodule D23 do
 
   defp part2_time({computers, connections, _t_s}) do
     connected_to_themseves(computers, connections, fn combo, {_connected_sets, largest_so_far} ->
-      Enum.count(combo) > largest_so_far
+      Enum.count(combo) >= largest_so_far
     end)
     |> Enum.sort(fn a, b -> Enum.count(a) > Enum.count(b) end)
     |> List.first()
